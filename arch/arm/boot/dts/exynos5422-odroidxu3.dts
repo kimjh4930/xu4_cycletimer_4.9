@@ -1,0 +1,148 @@
+/*
+ * Hardkernel Odroid XU3 board device tree source
+ *
+ * Copyright (c) 2014 Collabora Ltd.
+ * Copyright (c) 2013 Samsung Electronics Co., Ltd.
+ *		http://www.samsung.com
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+*/
+
+/dts-v1/;
+#include "exynos5422-odroidxu3-common.dtsi"
+#include "exynos5422-odroidxu3-audio.dtsi"
+#include "exynos54xx-odroidxu-leds.dtsi"
+
+/ {
+	model = "Hardkernel Odroid XU3";
+	compatible = "hardkernel,odroid-xu3", "samsung,exynos5800", "samsung,exynos5";
+};
+
+/*
+	i2c0 INA231 Sensors
+
+	- drivers/hardkernel/ina231.h
+
+	 config         = INA231_CONFIG(VSH_CT(eVSH_CT_8244uS)     | \
+	                                VBUS_CT(eVBUS_CT_8244uS)   | \
+	                                AVG_BIT(eAVG_16)           | \
+	                                eSHUNT_BUS_VOLT_CONTINUOUS),
+	update_period  = CONVERSION_DELAY(eVSH_CON_8244uS, eVBUS_CON_8244uS, eAVG_CON_16),
+*/
+
+&i2c_0 {
+	status = "okay";
+	clock-frequency = <400000>;
+	ina231@40  {
+		compatible = "hardkernel,INA231";
+		reg = <0x40>;
+		sensor-name = "sensor_arm";
+		enable = <0>;
+		max_A = <9>;
+		shunt_R_mohm = <10>;
+		config = <0x45FF>;
+		update_period = <263808>;
+	};
+	ina231@41  {
+		compatible = "hardkernel,INA231";
+		reg = <0x41>;
+		sensor-name = "sensor_mem";
+		enable = <0>;
+		max_A = <3>;
+		shunt_R_mohm = <10>;
+		config = <0x45FF>;
+		update_period = <263808>;
+	};
+	ina231@44  {
+		compatible = "hardkernel,INA231";
+		reg = <0x44>;
+		sensor-name = "sensor_g3d";
+		enable = <0>;
+		max_A = <5>;
+		shunt_R_mohm = <10>;
+		config = <0x45FF>;
+		update_period = <263808>;
+	};
+	ina231@45  {
+		compatible = "hardkernel,INA231";
+		reg = <0x45>;
+		sensor-name = "sensor_kfc";
+		enable = <0>;
+		max_A = <2>;
+		shunt_R_mohm = <10>;
+		config = <0x45FF>;
+		update_period = <263808>;
+	};
+};
+
+&pwm {
+	/*
+	 * PWM 0 -- fan
+	 * PWM 1 -- Green LED
+	 * PWM 2 -- Blue LED
+	 * PWM 3 -- on MIPI connector for backlight
+	 */
+	pinctrl-0 = <&pwm0_out &pwm1_out &pwm2_out &pwm3_out>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&usbdrd_dwc3_1 {
+	dr_mode = "peripheral";
+};
+
+&spi_1 {
+	status = "okay";
+
+	assigned-clocks = <&clock CLK_MOUT_SPI1>, <&clock CLK_DOUT_SPI1>;
+	assigned-clock-parents = <&clock CLK_MOUT_DPLL>;
+	assigned-clock-rates = <0>, <80000000>;
+
+	samsung,spi-src-clk = <0>;
+	num-cs = <2>;
+	cs-gpios = <&gpa2 5 GPIO_ACTIVE_HIGH>, <&gpx2 1 GPIO_ACTIVE_HIGH>;
+
+	spidev: spidev@0 {
+		reg = <0>;
+		compatible = "spidev";
+		spi-max-frequency = <1000000>;
+
+		controller-data {
+			cs-gpio = <&gpa2 5 GPIO_ACTIVE_HIGH>;
+			samsung,spi-feedback-delay = <0>;
+		};
+	};
+
+	ads7846: ads7846@1 {
+		reg = <1>;
+		compatible = "ti,ads7846";
+		interrupt-parent = <&gpa0>;
+		interrupts = <3 3>;
+		spi-max-frequency = <1000000>;
+		pendown-gpio = <&gpa0 3 GPIO_ACTIVE_HIGH>;
+		vcc-supply = <&ldo30_reg>;
+
+		ti,swap-xy = <1>;
+		ti,x-min = /bits/ 16 <0>;
+		ti,x-max = /bits/ 16 <8000>;
+		ti,y-min = /bits/ 16 <0>;
+		ti,y-max = /bits/ 16 <4800>;
+		ti,x-plate-ohms = /bits/ 16 <40>;
+		ti,pressure-max = /bits/ 16 <255>;
+
+		linux,wakeup;
+
+		controller-data {
+			cs-gpio = <&gpx2 1 GPIO_ACTIVE_HIGH>;
+			samsung,spi-feedback-delay = <0>;
+		};
+	};
+};
+
+&mali {
+	status = "okay";
+	mali-freq = <600000000>;
+	mali-volts = <1150000>;
+};
