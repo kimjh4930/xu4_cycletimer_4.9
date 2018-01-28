@@ -59,8 +59,13 @@ static void put_prev_task_stop(struct rq *rq, struct task_struct *prev)
 {
 	struct task_struct *curr = rq->curr;
 	u64 delta_exec;
+	u64 delta_cycle;
+
+	u64 curr_cycle = read_cycles();
 
 	delta_exec = rq_clock_task(rq) - curr->se.exec_start;
+	delta_cycle = curr_cycle - curr->se.exec_start_cycle;
+
 	if (unlikely((s64)delta_exec < 0))
 		delta_exec = 0;
 
@@ -68,9 +73,13 @@ static void put_prev_task_stop(struct rq *rq, struct task_struct *prev)
 			max(curr->se.statistics.exec_max, delta_exec));
 
 	curr->se.sum_exec_runtime += delta_exec;
+	curr->se.sum_exec_cycle += delta_cycle;
+
 	account_group_exec_runtime(curr, delta_exec);
 
 	curr->se.exec_start = rq_clock_task(rq);
+	curr->se.exec_start_cycle = curr_cycle;
+
 	cpuacct_charge(curr, delta_exec);
 }
 

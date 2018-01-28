@@ -955,21 +955,29 @@ static void update_curr(struct cfs_rq *cfs_rq)
 {
 	struct sched_entity *curr = cfs_rq->curr;
 	u64 now = rq_clock_task(rq_of(cfs_rq));
+	u64 cycle_now = read_cycles();
+
 	u64 delta_exec;
+	u64 delta_cycle;
 
 	if (unlikely(!curr))
 		return;
 
 	delta_exec = now - curr->exec_start;
+	delta_cycle = cycle_now - curr->exec_start_cycle;
+
 	if (unlikely((s64)delta_exec <= 0))
 		return;
 
 	curr->exec_start = now;
+	curr->exec_start_cycle = cycle_now;
 
 	schedstat_set(curr->statistics.exec_max,
 		      max(delta_exec, curr->statistics.exec_max));
 
 	curr->sum_exec_runtime += delta_exec;
+	curr->sum_exec_cycle += delta_cycle;
+
 	schedstat_add(cfs_rq->exec_clock, delta_exec);
 
 	curr->vruntime += calc_delta_fair(delta_exec, curr);
