@@ -1350,6 +1350,11 @@ struct sched_statistics {
 	u64			nr_wakeups_affine_attempts;
 	u64			nr_wakeups_passive;
 	u64			nr_wakeups_idle;
+
+	u64			sleep_start_cycle;
+	u64			sleep_sum_cycle;
+	u64			block_start_cycle;
+	u64			block_sum_cycle;
 };
 #endif
 
@@ -1374,6 +1379,10 @@ struct sched_entity {
 	u64			prev_sum_exec_runtime;
 
 	u64			nr_migrations;
+
+	u64			exec_start_cycle;
+	u64			prev_start_cycle;
+	u64			sum_exec_cycle;
 
 #ifdef CONFIG_SCHEDSTATS
 	struct sched_statistics statistics;

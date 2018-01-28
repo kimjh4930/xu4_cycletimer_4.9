@@ -1040,7 +1040,6 @@ update_stats_wait_end(struct cfs_rq *cfs_rq, struct sched_entity *se)
 
 	schedstat_set(se->statistics.wait_max,
 		      max(schedstat_val(se->statistics.wait_max), delta));
-	schedstat_inc(se->statistics.wait_count);
 	schedstat_add(se->statistics.wait_sum, delta);
 	schedstat_set(se->statistics.wait_start, 0);
 }
@@ -1071,6 +1070,7 @@ update_stats_enqueue_sleeper(struct cfs_rq *cfs_rq, struct sched_entity *se)
 
 		schedstat_set(se->statistics.sleep_start, 0);
 		schedstat_add(se->statistics.sum_sleep_runtime, delta);
+		schedstat_inc(se->statistics.wait_count);
 
 		if (tsk) {
 			account_scheduler_latency(tsk, delta >> 10, 1);
@@ -1083,16 +1083,13 @@ update_stats_enqueue_sleeper(struct cfs_rq *cfs_rq, struct sched_entity *se)
 		if ((s64)delta < 0)
 			delta = 0;
 
-		if (unlikely(delta > schedstat_val(se->statistics.block_max)))
-			schedstat_set(se->statistics.block_max, delta);
-
 		schedstat_set(se->statistics.block_start, 0);
-		schedstat_add(se->statistics.sum_sleep_runtime, delta);
+		schedstat_set(se->statistics.block_max, delta);
+		schedstat_inc(se->statistics.iowait_count);
 
 		if (tsk) {
 			if (tsk->in_iowait) {
 				schedstat_add(se->statistics.iowait_sum, delta);
-				schedstat_inc(se->statistics.iowait_count);
 				trace_sched_stat_iowait(tsk, delta);
 			}
 
