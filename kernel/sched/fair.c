@@ -1061,6 +1061,14 @@ update_stats_enqueue_sleeper(struct cfs_rq *cfs_rq, struct sched_entity *se)
 
 	if (sleep_start) {
 		u64 delta = rq_clock(rq_of(cfs_rq)) - sleep_start;
+		u64 cur_cycle = read_cycles();
+
+		if(cur_cycle != 0 ){
+			u64 delta_cycle = cur_cycle - 
+					se->statistics.sleep_start_cycle;
+			se->statistics.sleep_sum_cycle += delta_cycle;
+			se->statistics.sleep_start_cycle = 0;
+		}
 
 		if ((s64)delta < 0)
 			delta = 0;
@@ -1079,6 +1087,14 @@ update_stats_enqueue_sleeper(struct cfs_rq *cfs_rq, struct sched_entity *se)
 	}
 	if (block_start) {
 		u64 delta = rq_clock(rq_of(cfs_rq)) - block_start;
+		u64 cur_cycle = read_cycles();
+
+		if(cur_cycle != 0){
+			u64 delta_cycle = cur_cycle -
+					se->statistics.block_start_cycle;
+			se->statistics.block_sum_cycle += delta_cycle;
+			se->statistics.block_start_cycle = 0;
+		}
 
 		if ((s64)delta < 0)
 			delta = 0;
@@ -1147,12 +1163,16 @@ update_stats_dequeue(struct cfs_rq *cfs_rq, struct sched_entity *se, int flags)
 	if ((flags & DEQUEUE_SLEEP) && entity_is_task(se)) {
 		struct task_struct *tsk = task_of(se);
 
-		if (tsk->state & TASK_INTERRUPTIBLE)
+		if (tsk->state & TASK_INTERRUPTIBLE){
 			schedstat_set(se->statistics.sleep_start,
 				      rq_clock(rq_of(cfs_rq)));
-		if (tsk->state & TASK_UNINTERRUPTIBLE)
+			se->statistics.sleep_start_cycle = read_cycles();
+		}
+		if (tsk->state & TASK_UNINTERRUPTIBLE){
 			schedstat_set(se->statistics.block_start,
 				      rq_clock(rq_of(cfs_rq)));
+			se->statistics.block_start_cycle = read_cycles();
+		}
 	}
 }
 

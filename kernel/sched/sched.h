@@ -50,7 +50,7 @@ static inline void update_idle_core(struct rq *rq) { }
 #endif
 
 //cycle.c
-extern u64 read_cycles();
+extern u64 read_cycles(void);
 
 /*
  * Helpers for converting nanosecond timing to jiffy resolution

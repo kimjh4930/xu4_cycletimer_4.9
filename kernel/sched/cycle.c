@@ -5,7 +5,7 @@ u64 cycles;
 
 u64 read_cycles(void);
 
-u64 read_cycles(){
+u64 read_cycles(void){
 	u32 current_cycle;
 	u32 temp;
 
