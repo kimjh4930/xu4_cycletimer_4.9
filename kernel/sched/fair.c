@@ -1108,7 +1108,7 @@ update_stats_enqueue_sleeper(struct cfs_rq *cfs_rq, struct sched_entity *se)
 			delta = 0;
 
 		schedstat_set(se->statistics.block_start, 0);
-		schedstat_set(se->statistics.block_max, delta);
+		schedstat_add(se->statistics.block_max, delta);
 		schedstat_inc(se->statistics.iowait_count);
 
 		if (tsk) {
